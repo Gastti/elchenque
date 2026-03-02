@@ -1,0 +1,118 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: #fafaf8;
+  --color-foreground: #111111;
+  --color-ink: #111111;
+  --color-paper: #fafaf8;
+  --color-rule: #c0bdb6;
+  --color-ink-muted: #5a5650;
+  --color-accent: #000000;
+
+  /* --font-headline usa directamente la variable que Next.js pone en body */
+  --font-headline: var(--font-playfair), Georgia, serif;
+  /* --font-body: Libre Franklin para UI/labels */
+  --font-body: var(--font-franklin), 'Helvetica Neue', Arial, sans-serif;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-franklin), 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Article markdown body — EB Garamond referenciado directamente */
+.article-body {
+  font-family: var(--font-garamond), Georgia, serif;
+  font-size: 1.125rem;
+  line-height: 1.85;
+  color: var(--color-ink);
+}
+
+.article-body p {
+  margin-bottom: 1.5em;
+}
+
+.article-body h2 {
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: 1.65rem;
+  font-weight: 700;
+  font-style: italic;
+  line-height: 1.2;
+  margin-top: 2.4em;
+  margin-bottom: 0.6em;
+  color: var(--color-ink);
+}
+
+.article-body h3 {
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-style: italic;
+  margin-top: 2em;
+  margin-bottom: 0.5em;
+}
+
+.article-body hr {
+  border: none;
+  border-top: 1px solid var(--color-rule);
+  margin: 2.4em 0;
+}
+
+.article-body ul,
+.article-body ol {
+  padding-left: 1.5em;
+  margin-bottom: 1.5em;
+}
+
+.article-body li {
+  margin-bottom: 0.5em;
+}
+
+.article-body blockquote {
+  border-left: 3px solid var(--color-ink);
+  margin: 2em 0;
+  padding: 0.2em 0 0.2em 1.4em;
+  color: var(--color-ink-muted);
+  font-style: italic;
+  font-size: 1.2rem;
+  line-height: 1.65;
+}
+
+.article-body a {
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--color-rule);
+}
+
+.article-body a:hover {
+  text-decoration-color: var(--color-ink);
+}
+
+.article-body strong {
+  font-weight: 700;
+}
+
+.article-body img {
+  width: 100%;
+  height: auto;
+  margin: 1.8em 0;
+  display: block;
+}
+
+.article-body code {
+  font-family: monospace;
+  font-size: 0.85em;
+  background: #f0ede8;
+  padding: 0.1em 0.35em;
+}
+
+.article-body pre {
+  background: #f0ede8;
+  padding: 1em;
+  overflow-x: auto;
+  margin-bottom: 1.5em;
+  font-size: 0.85em;
+}
