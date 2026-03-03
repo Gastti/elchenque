@@ -47,12 +47,14 @@ type DigestDraft = {
   tags: string[]
 }
 
-async function generateDigest(articles: RawArticle[], date: Date): Promise<DigestDraft> {
-  const dateLabel = date.toLocaleDateString('es-AR', {
+async function generateDigest(articles: RawArticle[], since: Date): Promise<DigestDraft> {
+  const dateLabel = since.toLocaleDateString('es-AR', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
     year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
   })
 
   const payload = articles.map((a) => ({
@@ -94,18 +96,16 @@ ${JSON.stringify(payload, null, 2)}`
 }
 
 export async function runDigestPipeline(supabase: SupabaseClient): Promise<DigestResult> {
-  // Yesterday's date range
+  // Last 24 hours from now
   const now = new Date()
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const yesterdayStart = new Date(todayStart)
-  yesterdayStart.setDate(yesterdayStart.getDate() - 1)
+  const since = new Date(now.getTime() - 24 * 60 * 60 * 1000)
 
-  // Fetch articles scraped yesterday
+  // Fetch articles scraped in the last 24 hours
   const { data, error } = await supabase
     .from('raw_articles')
     .select('*')
-    .gte('fetched_at', yesterdayStart.toISOString())
-    .lt('fetched_at', todayStart.toISOString())
+    .gte('fetched_at', since.toISOString())
+    .lte('fetched_at', now.toISOString())
     .order('fetched_at', { ascending: false })
     .limit(30)
 
@@ -119,14 +119,14 @@ export async function runDigestPipeline(supabase: SupabaseClient): Promise<Diges
     return {
       post_generated: false,
       articles_used: 0,
-      error: 'No se encontraron artículos del día anterior.',
+      error: 'No se encontraron artículos en las últimas 24 horas.',
     }
   }
 
   // Generate digest
   let draft: DigestDraft
   try {
-    draft = await generateDigest(articles, yesterdayStart)
+    draft = await generateDigest(articles, since)
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
     return { post_generated: false, articles_used: articles.length, error: msg }
