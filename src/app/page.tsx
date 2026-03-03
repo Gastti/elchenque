@@ -48,7 +48,7 @@ export default async function HomePage() {
               letterSpacing: '-0.01em',
             }}
           >
-            Local Journal
+            El Chenque
           </h1>
           <div className="flex items-center gap-4 mt-3">
             <div className="h-px flex-1 bg-[var(--color-ink)]" />
@@ -177,11 +177,11 @@ export default async function HomePage() {
         <footer className="mt-12 pt-5 border-t border-[var(--color-rule)] flex justify-between items-center">
           <p className="text-[9px] tracking-[0.3em] uppercase"
             style={{ fontFamily: F.ui, color: 'var(--color-ink-muted)' }}>
-            Local Journal
+            El Chenque
           </p>
           <p className="text-[9px] tracking-[0.2em] uppercase"
             style={{ fontFamily: F.ui, color: 'var(--color-ink-muted)' }}>
-            Generado con IA · Groq
+            Todos los articulos han sido generados con IA, sin fines de lucro.
           </p>
         </footer>
       </div>
