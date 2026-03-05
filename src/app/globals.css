@@ -106,8 +106,6 @@ body {
 /* ── Scroll swipe hint (homepage, mobile) ──────────────────────────────────── */
 
 .scroll-swipe-hint {
-  display: inline-flex;
-  align-items: center;
   gap: 0.35rem;
   font-size: 0.6rem;
   letter-spacing: 0.22em;

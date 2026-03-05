@@ -66,7 +66,12 @@ async function getOrCreateResumenCategory(supabase: SupabaseClient): Promise<str
   return inserted.id
 }
 
-async function generateDigest(articles: RawArticle[], since: Date, until: Date): Promise<DigestDraft> {
+async function generateDigest(
+  articles: RawArticle[],
+  since: Date,
+  until: Date,
+  label?: string,
+): Promise<DigestDraft> {
   const fmt = (d: Date) =>
     d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Argentina/Buenos_Aires' })
   const dayLabel = until.toLocaleDateString('es-AR', {
@@ -110,12 +115,21 @@ ${JSON.stringify(payload, null, 2)}`
   })
 
   const raw = completion.choices[0]?.message?.content ?? '{}'
-  return parseJSON<DigestDraft>(raw)
+  const draft = parseJSON<DigestDraft>(raw)
+
+  // Override title/slug with the provided label if given
+  if (label) {
+    draft.title = `${label} — ${dayLabel}`
+    draft.slug = slugify(draft.title)
+  }
+
+  return draft
 }
 
 export async function runDigestPipeline(
   supabase: SupabaseClient,
   window?: { from: Date; to: Date },
+  label?: string,
 ): Promise<DigestResult> {
   const now = new Date()
   const since = window?.from ?? new Date(now.getTime() - 24 * 60 * 60 * 1000)
@@ -147,7 +161,7 @@ export async function runDigestPipeline(
   // Generate digest
   let draft: DigestDraft
   try {
-    draft = await generateDigest(articles, since, until)
+    draft = await generateDigest(articles, since, until, label)
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
     return { post_generated: false, articles_used: articles.length, error: msg }
@@ -174,7 +188,8 @@ export async function runDigestPipeline(
     content: draft.content,
     category_id: categoryId,
     tags: draft.tags,
-    status: 'draft',
+    status: 'published',
+    published_at: new Date().toISOString(),
     ai_generated: true,
     cover_image_url: coverImageUrl,
   })

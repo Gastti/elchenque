@@ -253,7 +253,8 @@ export async function runAIPipeline(supabase: SupabaseClient): Promise<AIResult>
           content: draft.content,
           category_id: categoryId,
           tags: draft.tags,
-          status: 'draft',
+          status: 'published',
+          published_at: new Date().toISOString(),
           ai_generated: true,
           cover_image_url: coverImageUrl,
         })

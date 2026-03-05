@@ -49,7 +49,7 @@ function PostCard({ post }: { post: PostWithCategory }) {
   return (
     <Link
       href={`/posts/${post.slug}`}
-      className="flex flex-col gap-4 bg-[#f5f5f5] hover:bg-[#ebebeb] transition-colors duration-150 p-5 md:p-6 group"
+      className="flex flex-col gap-4 bg-[#f5f5f5] hover:bg-[#ebebeb] transition-colors duration-150 p-5 md:p-6 group flex-1"
     >
       <p className="text-[11px]" style={{ fontFamily: F.ui, color: 'var(--color-ink-muted)' }}>
         {date}
@@ -83,10 +83,13 @@ function PostCard({ post }: { post: PostWithCategory }) {
 export default async function HomePage() {
   const supabase = await createClient()
 
+  const since48h = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString()
+
   const { data } = await supabase
     .from('posts')
     .select('id, title, slug, excerpt, tags, published_at, created_at, category:categories(id, name, slug)')
     .eq('status', 'published')
+    .gte('published_at', since48h)
     .order('published_at', { ascending: false })
 
   const posts = (data ?? []) as unknown as PostWithCategory[]
@@ -111,7 +114,7 @@ export default async function HomePage() {
               {/* Category header */}
               <div className="flex items-center gap-4 mb-5 md:mb-8">
                 <h2
-                  className="text-xl md:text-2xl font-semibold lowercase shrink-0"
+                  className="text-xl md:text-2xl font-semibold capitalize shrink-0"
                   style={{ fontFamily: F.headline }}
                 >
                   {label}
@@ -133,7 +136,7 @@ export default async function HomePage() {
                   {catPosts.map((post) => (
                     <div
                       key={post.id}
-                      className="min-w-[78vw] sm:min-w-[44vw] md:min-w-0 shrink-0 snap-start"
+                      className="min-w-[78vw] sm:min-w-[44vw] md:min-w-0 shrink-0 snap-start flex flex-col"
                     >
                       <PostCard post={post} />
                     </div>
@@ -151,7 +154,7 @@ export default async function HomePage() {
 
               {/* Indicador de scroll — solo mobile */}
               {catPosts.length > 1 && (
-                <p className="scroll-swipe-hint md:hidden mt-2.5 pl-0">deslizá</p>
+                <p className="scroll-swipe-hint flex items-center md:hidden mt-2.5">deslizá</p>
               )}
 
             </section>
