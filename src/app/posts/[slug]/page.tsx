@@ -6,6 +6,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { createClient } from '@/lib/supabase/server'
 import type { Post } from '@/types/database'
+import SiteHeader from '@/app/_components/site-header'
 
 const F = {
   headline: 'var(--font-playfair), Georgia, serif',
@@ -35,26 +36,26 @@ export default async function PostPage({
     day: 'numeric',
     month: 'long',
     year: 'numeric',
+    timeZone: 'America/Argentina/Buenos_Aires',
   })
 
   return (
     <div className="min-h-screen bg-[var(--color-paper)]">
-      <div className="max-w-2xl mx-auto px-6 py-10">
+      <SiteHeader />
 
-        {/* Masthead nav */}
-        <header className="mb-10">
-          <div className="flex items-center gap-4 mb-5">
-            <Link
-              href="/"
-              className="text-[9px] tracking-[0.35em] uppercase hover:opacity-50 transition-opacity"
-              style={{ fontFamily: F.ui, color: 'var(--color-ink-muted)' }}
-            >
-              ← Local Journal
-            </Link>
-            <div className="h-px flex-1 bg-[var(--color-rule)]" />
-          </div>
-          <div className="h-0.5 bg-[var(--color-ink)]" />
-        </header>
+      <div className="max-w-2xl mx-auto px-6 pb-10">
+
+        {/* Back nav */}
+        <nav className="flex items-center gap-3 mb-8">
+          <Link
+            href="/"
+            className="text-[9px] tracking-[0.35em] uppercase hover:opacity-50 transition-opacity shrink-0"
+            style={{ fontFamily: F.ui, color: 'var(--color-ink-muted)' }}
+          >
+            ← Portada
+          </Link>
+          <div className="h-px flex-1 bg-[var(--color-rule)]" />
+        </nav>
 
         {/* Article header */}
         <div className="mb-10 pb-8 border-b border-[var(--color-rule)]">
@@ -82,7 +83,6 @@ export default async function PostPage({
             {post.title}
           </h1>
 
-          {/* Standfirst — Garamond italic */}
           {post.excerpt && (
             <p
               className="italic leading-relaxed mb-5 border-l-[3px] border-[var(--color-ink)] pl-4"
@@ -96,7 +96,6 @@ export default async function PostPage({
             </p>
           )}
 
-          {/* Byline */}
           <p className="text-[10px] tracking-[0.28em] uppercase"
             style={{ fontFamily: F.ui, color: 'var(--color-ink-muted)' }}>
             {date} · Generado con IA
@@ -114,7 +113,7 @@ export default async function PostPage({
           />
         )}
 
-        {/* Article body — EB Garamond via CSS class */}
+        {/* Article body */}
         <article className="article-body">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>
             {post.content}

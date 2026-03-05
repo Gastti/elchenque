@@ -1,6 +1,6 @@
 import Groq from 'groq-sdk'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { RawArticle, Category } from '@/types/database'
+import type { RawArticle } from '@/types/database'
 
 export type AIResult = {
   articles_fetched: number
@@ -18,7 +18,7 @@ type PostDraft = {
   slug: string
   excerpt: string
   content: string
-  category_id: string | null
+  category_name: string | null
   tags: string[]
 }
 
@@ -51,11 +51,10 @@ function mockGroupArticles(articles: RawArticle[]): ArticleGroup[] {
   return groups
 }
 
-function mockGeneratePost(groupArticles: RawArticle[], categories: Category[]): PostDraft {
+function mockGeneratePost(groupArticles: RawArticle[]): PostDraft {
   const first = groupArticles[0]
   const title = `[MOCK] ${first.title}`
   const slug = slugify(title)
-  const category = categories[0] ?? null
   const content = groupArticles
     .map((a) => `## ${a.title}\n\n${a.content ?? '_Sin contenido._'}\n\nFuente: ${a.url}`)
     .join('\n\n---\n\n')
@@ -64,7 +63,7 @@ function mockGeneratePost(groupArticles: RawArticle[], categories: Category[]): 
     slug,
     excerpt: `Resumen mock basado en ${groupArticles.length} artículo(s).`,
     content,
-    category_id: category?.id ?? null,
+    category_name: 'Mock',
     tags: ['mock', 'test'],
   }
 }
@@ -134,26 +133,15 @@ ${JSON.stringify(payload, null, 2)}`
   return result.groups
 }
 
-async function generatePost(
-  groupArticles: RawArticle[],
-  categories: Category[],
-): Promise<PostDraft> {
+async function generatePost(groupArticles: RawArticle[]): Promise<PostDraft> {
   const articlesPayload = groupArticles.map((a) => ({
     title: a.title,
     url: a.url,
     content: a.content ?? '',
   }))
 
-  const categoriesPayload = categories.map((c) => ({
-    id: c.id,
-    name: c.name,
-  }))
-
   const prompt = `Sos un periodista de un diario local argentino.
 Basándote en los siguientes artículos fuente, escribí un post periodístico completo en español.
-
-Categorías disponibles:
-${JSON.stringify(categoriesPayload, null, 2)}
 
 Devolvé un JSON con exactamente estas claves:
 {
@@ -161,7 +149,7 @@ Devolvé un JSON con exactamente estas claves:
   "slug": "slug-url-amigable",
   "excerpt": "resumen de 1-2 oraciones",
   "content": "cuerpo completo en markdown (usar \\n para saltos de línea)",
-  "category_id": "uuid o null",
+  "category_name": "categoría temática concisa en español (ej: 'Política local', 'Deportes', 'Economía', 'Seguridad')",
   "tags": ["tag1", "tag2", "tag3"]
 }
 
@@ -169,6 +157,27 @@ Artículos fuente:
 ${JSON.stringify(articlesPayload, null, 2)}`
 
   return askJSON<PostDraft>(prompt, 4096)
+}
+
+async function getOrCreateCategory(supabase: SupabaseClient, name: string): Promise<string | null> {
+  const slug = slugify(name)
+
+  const { data } = await supabase
+    .from('categories')
+    .select('id')
+    .eq('slug', slug)
+    .maybeSingle()
+
+  if (data) return data.id
+
+  const { data: inserted, error } = await supabase
+    .from('categories')
+    .insert({ name, slug })
+    .select('id')
+    .single()
+
+  if (error) return null
+  return inserted.id
 }
 
 export async function runAIPipeline(supabase: SupabaseClient): Promise<AIResult> {
@@ -192,11 +201,7 @@ export async function runAIPipeline(supabase: SupabaseClient): Promise<AIResult>
     return { articles_fetched: 0, posts_generated: 0, errors: [] }
   }
 
-  // 2. Fetch categories
-  const { data: categoriesData } = await supabase.from('categories').select('*')
-  const categories = (categoriesData ?? []) as Category[]
-
-  // 3. Group articles by topic
+  // 2. Group articles by topic
   let groups: ArticleGroup[]
   try {
     groups = isMock ? mockGroupArticles(articles) : await groupArticles(articles)
@@ -218,7 +223,7 @@ export async function runAIPipeline(supabase: SupabaseClient): Promise<AIResult>
 
       if (groupArticles.length === 0) return
 
-      const draft = isMock ? mockGeneratePost(groupArticles, categories) : await generatePost(groupArticles, categories)
+      const draft = isMock ? mockGeneratePost(groupArticles) : await generatePost(groupArticles)
 
       // Resolve slug collision
       let slug = draft.slug
@@ -233,6 +238,11 @@ export async function runAIPipeline(supabase: SupabaseClient): Promise<AIResult>
       // Pick cover image from first article that has one
       const coverImageUrl = groupArticles.find((a) => a.image_url)?.image_url ?? null
 
+      // Resolve category
+      const categoryId = draft.category_name
+        ? await getOrCreateCategory(supabase, draft.category_name)
+        : null
+
       // Insert post
       const { data: postData, error: postError } = await supabase
         .from('posts')
@@ -241,7 +251,7 @@ export async function runAIPipeline(supabase: SupabaseClient): Promise<AIResult>
           slug,
           excerpt: draft.excerpt,
           content: draft.content,
-          category_id: draft.category_id,
+          category_id: categoryId,
           tags: draft.tags,
           status: 'draft',
           ai_generated: true,

@@ -47,6 +47,25 @@ type DigestDraft = {
   tags: string[]
 }
 
+async function getOrCreateResumenCategory(supabase: SupabaseClient): Promise<string | null> {
+  const { data } = await supabase
+    .from('categories')
+    .select('id')
+    .eq('slug', 'resumen-del-dia')
+    .maybeSingle()
+
+  if (data) return data.id
+
+  const { data: inserted, error } = await supabase
+    .from('categories')
+    .insert({ name: 'Resumen del día', slug: 'resumen-del-dia' })
+    .select('id')
+    .single()
+
+  if (error) return null
+  return inserted.id
+}
+
 async function generateDigest(articles: RawArticle[], since: Date, until: Date): Promise<DigestDraft> {
   const fmt = (d: Date) =>
     d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Argentina/Buenos_Aires' })
@@ -64,8 +83,8 @@ async function generateDigest(articles: RawArticle[], since: Date, until: Date):
   }))
 
   const prompt = `Sos un redactor de un diario local argentino.
-Escribí un resumen periodístico de las noticias del ${dateLabel}.
-El post debe repasar los principales temas del día de forma cohesiva, no como una lista.
+Escribí un resumen periodístico de las noticias del ${dateLabel}, pero cada noticia debe estar un poco.
+El post debe repasar los principales temas del día de forma cohesiva detalladamente, no como una lista.
 
 Donde corresponda, incluí imágenes inline en el markdown usando este formato exacto:
 ![descripción breve](url_de_la_imagen)
@@ -145,12 +164,15 @@ export async function runDigestPipeline(
   // Cover image: first article that has one
   const coverImageUrl = articles.find((a) => a.image_url)?.image_url ?? null
 
+  // Ensure "Resumen del día" category exists
+  const categoryId = await getOrCreateResumenCategory(supabase)
+
   const { error: insertError } = await supabase.from('posts').insert({
     title: draft.title,
     slug,
     excerpt: draft.excerpt,
     content: draft.content,
-    category_id: null,
+    category_id: categoryId,
     tags: draft.tags,
     status: 'draft',
     ai_generated: true,

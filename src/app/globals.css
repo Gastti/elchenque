@@ -1,12 +1,12 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-background: #fafaf8;
+  --color-background: #ffffff;
   --color-foreground: #111111;
   --color-ink: #111111;
-  --color-paper: #fafaf8;
-  --color-rule: #c0bdb6;
-  --color-ink-muted: #5a5650;
+  --color-paper: #ffffff;
+  --color-rule: #e0e0e0;
+  --color-ink-muted: #777777;
   --color-accent: #000000;
 
   /* --font-headline usa directamente la variable que Next.js pone en body */
@@ -20,6 +20,7 @@ body {
   color: var(--color-ink);
   font-family: var(--font-franklin), 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Article markdown body — EB Garamond referenciado directamente */
