@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import type { Post, Category } from '@/types/database'
 import SiteHeader from '@/app/_components/site-header'
+import SiteFooter from '@/app/_components/site-footer'
 
 const F = {
   headline: 'var(--font-playfair), Georgia, serif',
@@ -48,20 +49,20 @@ function PostCard({ post }: { post: PostWithCategory }) {
   return (
     <Link
       href={`/posts/${post.slug}`}
-      className="flex flex-col gap-4 bg-[#f5f5f5] hover:bg-[#ebebeb] transition-colors duration-150 p-6 group"
+      className="flex flex-col gap-4 bg-[#f5f5f5] hover:bg-[#ebebeb] transition-colors duration-150 p-5 md:p-6 group"
     >
       <p className="text-[11px]" style={{ fontFamily: F.ui, color: 'var(--color-ink-muted)' }}>
         {date}
       </p>
       <h3
         className="font-bold leading-snug group-hover:opacity-60 transition-opacity"
-        style={{ fontFamily: F.headline, fontSize: '1.25rem' }}
+        style={{ fontFamily: F.headline, fontSize: '1.2rem' }}
       >
         {post.title}
       </h3>
       {post.excerpt && (
         <p
-          className="text-sm leading-relaxed flex-1 line-clamp-5"
+          className="text-sm leading-relaxed flex-1 line-clamp-4"
           style={{ fontFamily: F.ui, color: 'var(--color-ink)' }}
         >
           {post.excerpt}
@@ -95,7 +96,7 @@ export default async function HomePage() {
     <div className="min-h-screen bg-[var(--color-paper)]">
       <SiteHeader />
 
-      <main className="max-w-5xl mx-auto px-6 pb-16 mt-6">
+      <main className="max-w-5xl mx-auto px-6 pb-16 mt-4 md:mt-6">
 
         {posts.length === 0 ? (
           <div className="py-24 text-center">
@@ -105,44 +106,60 @@ export default async function HomePage() {
           </div>
         ) : (
           categories.map(({ label, posts: catPosts }) => (
-            <section key={label} className="mb-16">
+            <section key={label} className="mb-10 md:mb-16">
+
               {/* Category header */}
-              <div className="flex items-center gap-5 mb-8">
+              <div className="flex items-center gap-4 mb-5 md:mb-8">
                 <h2
-                  className="text-2xl font-semibold lowercase shrink-0"
+                  className="text-xl md:text-2xl font-semibold lowercase shrink-0"
                   style={{ fontFamily: F.headline }}
                 >
                   {label}
                 </h2>
-                <div className="h-px flex-1 bg-[var(--color-ink)] mt-1.5" />
+                <div className="h-px flex-1 bg-[var(--color-ink)] mt-1" />
               </div>
 
-              {/* Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {catPosts.map((post) => (
-                  <PostCard key={post.id} post={post} />
-                ))}
+              {/* Cards — mobile: scroll horizontal, desktop: grid */}
+              <div className="relative">
+                {/* Scroll track */}
+                <div
+                  className="
+                    flex gap-3 overflow-x-auto pb-2
+                    md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-5 md:overflow-visible md:pb-0
+                    [scrollbar-width:none] [&::-webkit-scrollbar]:hidden
+                    snap-x snap-mandatory scroll-smooth
+                  "
+                >
+                  {catPosts.map((post) => (
+                    <div
+                      key={post.id}
+                      className="min-w-[78vw] sm:min-w-[44vw] md:min-w-0 shrink-0 snap-start"
+                    >
+                      <PostCard post={post} />
+                    </div>
+                  ))}
+                  {/* Spacer para que el último card no quede pegado al fade */}
+                  <div className="min-w-3 shrink-0 md:hidden" aria-hidden="true" />
+                </div>
+
+                {/* Fade derecho — solo mobile */}
+                <div
+                  className="absolute inset-y-0 right-0 w-14 pointer-events-none md:hidden"
+                  style={{ background: 'linear-gradient(to right, transparent, var(--color-paper))' }}
+                />
               </div>
+
+              {/* Indicador de scroll — solo mobile */}
+              {catPosts.length > 1 && (
+                <p className="scroll-swipe-hint md:hidden mt-2.5 pl-0">deslizá</p>
+              )}
+
             </section>
           ))
         )}
 
-        {/* Footer */}
-        <footer className="pt-8 border-t border-[var(--color-rule)] flex flex-col sm:flex-row justify-between items-center gap-2">
-          <p
-            className="text-[9px] tracking-[0.3em] uppercase"
-            style={{ fontFamily: F.ui, color: 'var(--color-ink-muted)' }}
-          >
-            © {new Date().getFullYear()} Gastón Gutierrez · El Chenque
-          </p>
-          <p
-            className="text-[9px] tracking-[0.2em] uppercase"
-            style={{ fontFamily: F.ui, color: 'var(--color-ink-muted)' }}
-          >
-            Artículos creados con IA, publicados sin ánimo de lucro.
-          </p>
-        </footer>
       </main>
+      <SiteFooter />
     </div>
   )
 }
