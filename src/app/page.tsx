@@ -123,7 +123,7 @@ export default async function HomePage() {
               </div>
 
               {/* Cards — mobile: scroll horizontal, desktop: grid */}
-              <div className="relative">
+              <div>
                 {/* Scroll track */}
                 <div
                   className="
@@ -136,20 +136,16 @@ export default async function HomePage() {
                   {catPosts.map((post) => (
                     <div
                       key={post.id}
-                      className="w-[calc(100vw_-_5rem)] sm:w-[44vw] md:w-auto shrink-0 snap-start flex flex-col"
+                      className={`shrink-0 snap-start flex flex-col md:w-auto ${
+                        catPosts.length === 1
+                          ? 'w-full'
+                          : 'w-[calc(100vw_-_5rem)] sm:w-[44vw]'
+                      }`}
                     >
                       <PostCard post={post} />
                     </div>
                   ))}
-                  {/* Spacer para que el último card no quede pegado al fade */}
-                  <div className="min-w-3 shrink-0 md:hidden" aria-hidden="true" />
                 </div>
-
-                {/* Fade derecho — solo mobile */}
-                <div
-                  className="absolute inset-y-0 right-0 w-14 pointer-events-none md:hidden"
-                  style={{ background: 'linear-gradient(to right, transparent, var(--color-paper))' }}
-                />
               </div>
 
               {/* Indicador de scroll — solo mobile */}
