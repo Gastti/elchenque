@@ -146,6 +146,8 @@ ${JSON.stringify(payload, null, 2)}`
   return (result.groups ?? []).filter((g) => Array.isArray(g?.ids) && g.ids.length > 0)
 }
 
+const CANONICAL_CATEGORIES = ['Política', 'Economía', 'Seguridad', 'Sociedad', 'Deportes', 'Cultura'] as const
+
 async function generatePost(groupArticles: RawArticle[]): Promise<PostDraft> {
   const articlesPayload = groupArticles.map((a) => ({
     title: a.title,
@@ -162,9 +164,12 @@ Devolvé un JSON con exactamente estas claves:
   "slug": "slug-url-amigable",
   "excerpt": "resumen de 1-2 oraciones",
   "content": "cuerpo completo en markdown (usar \\n para saltos de línea)",
-  "category_name": "categoría temática concisa en español (ej: 'Política local', 'Deportes', 'Economía', 'Seguridad')",
+  "category_name": "UNA de estas opciones exactas: ${CANONICAL_CATEGORIES.join(' | ')}",
   "tags": ["tag1", "tag2", "tag3"]
 }
+
+IMPORTANTE: "category_name" debe ser exactamente uno de estos valores: ${CANONICAL_CATEGORIES.join(', ')}.
+Si no encaja claramente en ninguna, usá "Sociedad".
 
 Artículos fuente:
 ${JSON.stringify(articlesPayload, null, 2)}`
@@ -237,6 +242,11 @@ export async function runAIPipeline(supabase: SupabaseClient): Promise<AIResult>
       if (groupArticles.length === 0) return
 
       const draft = isMock ? mockGeneratePost(groupArticles) : await generatePost(groupArticles)
+
+      // Fallback: si el modelo devolvió una categoría fuera del set canónico, usamos Sociedad
+      if (draft.category_name && !(CANONICAL_CATEGORIES as readonly string[]).includes(draft.category_name)) {
+        draft.category_name = 'Sociedad'
+      }
 
       // Resolve slug collision
       let slug = draft.slug
