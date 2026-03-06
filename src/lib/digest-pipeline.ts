@@ -58,7 +58,7 @@ async function getOrCreateResumenCategory(supabase: SupabaseClient): Promise<str
 
   const { data: inserted, error } = await supabase
     .from('categories')
-    .insert({ name: 'Resumen del día', slug: 'resumen-del-dia' })
+    .insert({ name: 'Resumen', slug: 'resumen-del-dia' })
     .select('id')
     .single()
 
