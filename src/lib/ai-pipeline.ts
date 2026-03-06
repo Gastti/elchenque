@@ -168,7 +168,12 @@ Devolvé un JSON con exactamente estas claves:
   "tags": ["tag1", "tag2", "tag3"]
 }
 
-IMPORTANTE: "category_name" debe ser exactamente uno de estos valores: ${CANONICAL_CATEGORIES.join(', ')}.
+IMPORTANTE sobre el titular:
+- Debe ser directo e informativo: mencioná los nombres propios, empresas, personas o lugares involucrados.
+- Evitá titulares vagos o sensacionalistas del estilo "histórica empresa cierra tras 70 años" o "conocé el nuevo proyecto".
+- Ejemplos correctos: "La empresa láctea Manfrey cerró tras 70 años de actividad", "El municipio de Comodoro lanzó un plan de viviendas para 200 familias".
+
+IMPORTANTE sobre "category_name": debe ser exactamente uno de estos valores: ${CANONICAL_CATEGORIES.join(', ')}.
 Si no encaja claramente en ninguna, usá "Sociedad".
 
 Artículos fuente:
