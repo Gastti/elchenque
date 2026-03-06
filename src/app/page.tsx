@@ -31,7 +31,9 @@ function groupByCategory(posts: PostWithCategory[]): CategoryGroup[] {
       const slugB = postsB[0]?.category?.slug ?? null
       if (slugA === 'resumen-del-dia') return -1
       if (slugB === 'resumen-del-dia') return 1
-      return labelA.localeCompare(labelB, 'es')
+      const dateA = postsA[0]?.published_at ?? postsA[0]?.created_at ?? ''
+      const dateB = postsB[0]?.published_at ?? postsB[0]?.created_at ?? ''
+      return dateB.localeCompare(dateA)
     })
     .map(([label, posts]) => ({ label, posts }))
 }
